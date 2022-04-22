@@ -5,7 +5,7 @@
 
 import { nb, IConnectionProfile } from 'azdata';
 import * as vsEvent from 'vs/base/common/event';
-import { INotebookModel, ICellModel, IClientSession, NotebookContentChange, MoveDirection, ViewMode } from 'sql/workbench/services/notebook/browser/models/modelInterfaces';
+import { INotebookModel, ICellModel, IClientSession, NotebookContentChange, MoveDirection, ViewMode, ICellEdit } from 'sql/workbench/services/notebook/browser/models/modelInterfaces';
 import { INotebookFindModel } from 'sql/workbench/contrib/notebook/browser/models/notebookFindModel';
 import { NotebookChangeType, CellType } from 'sql/workbench/services/notebook/common/contracts';
 import { IExecuteManager, INotebookService, INotebookEditor, ILanguageMagic, IExecuteProvider, INavigationProvider, INotebookParams, INotebookSection, ICellEditorProvider, NotebookRange, ISerializationProvider, ISerializationManager } from 'sql/workbench/services/notebook/browser/notebookService';
@@ -502,6 +502,9 @@ export class FutureStub implements nb.IFuture {
 }
 
 export class NotebookComponentStub implements INotebookEditor {
+	applyCellEdits(edits: ICellEdit[]): Promise<void> {
+		throw new Error('Method not implemented.');
+	}
 	cellEditors: ICellEditorProvider[];
 	viewMode: string;
 	deltaDecorations(newDecorationsRange: NotebookRange | NotebookRange[], oldDecorationsRange: NotebookRange | NotebookRange[]): void {
@@ -713,6 +716,9 @@ export class NodeStub implements Node {
 }
 
 export class NotebookEditorStub implements INotebookEditor {
+	applyCellEdits(edits: ICellEdit[]): Promise<void> {
+		throw new Error('Method not implemented.');
+	}
 	notebookParams: INotebookParams;
 	id: string;
 	cells?: ICellModel[];

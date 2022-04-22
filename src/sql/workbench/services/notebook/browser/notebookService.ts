@@ -12,7 +12,7 @@ import { RenderMimeRegistry } from 'sql/workbench/services/notebook/browser/outp
 import { ModelFactory } from 'sql/workbench/services/notebook/browser/models/modelFactory';
 import { IConnectionProfile } from 'sql/platform/connection/common/interfaces';
 import { INotebookEditOperation } from 'sql/workbench/api/common/sqlExtHostTypes';
-import { ICellModel, INotebookModel } from 'sql/workbench/services/notebook/browser/models/modelInterfaces';
+import { ICellEdit, ICellModel, INotebookModel } from 'sql/workbench/services/notebook/browser/models/modelInterfaces';
 import { NotebookChangeType, CellType } from 'sql/workbench/services/notebook/common/contracts';
 import { IBootstrapParams } from 'sql/workbench/services/bootstrap/common/bootstrapParams';
 import { BaseTextEditor } from 'vs/workbench/browser/parts/editor/textEditor';
@@ -234,6 +234,7 @@ export interface INotebookEditor {
 	navigateToSection(sectionId: string): void;
 	deltaDecorations(newDecorationsRange: NotebookRange | NotebookRange[], oldDecorationsRange: NotebookRange | NotebookRange[]): void;
 	addCell(cellType: CellType, index?: number, event?: UIEvent);
+	applyCellEdits(edits: ICellEdit[]): Promise<void>;
 }
 
 export interface INavigationProvider {

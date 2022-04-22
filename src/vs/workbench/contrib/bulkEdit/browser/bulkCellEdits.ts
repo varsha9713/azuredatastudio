@@ -3,16 +3,17 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import { groupBy } from 'vs/base/common/arrays'; {{SQL CARBON EDIT}}
+import { ICellEdit } from 'sql/workbench/services/notebook/browser/models/modelInterfaces';
+import { INotebookService } from 'sql/workbench/services/notebook/browser/notebookService';
+import { groupBy } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
-// import { compare } from 'vs/base/common/strings'; {{SQL CARBON EDIT}}
+import { compare } from 'vs/base/common/strings';
 import { URI } from 'vs/base/common/uri';
 import { ResourceEdit } from 'vs/editor/browser/services/bulkEditService';
 import { WorkspaceEditMetadata } from 'vs/editor/common/modes';
 import { IProgress } from 'vs/platform/progress/common/progress';
 import { UndoRedoGroup, UndoRedoSource } from 'vs/platform/undoRedo/common/undoRedo';
-import { ICellEditOperation } from 'vs/workbench/contrib/notebook/common/notebookCommon';
-import { INotebookEditorModelResolverService } from 'vs/workbench/contrib/notebook/common/notebookEditorModelResolverService';
+import { CellEditType, ICellEditOperation } from 'vs/workbench/contrib/notebook/common/notebookCommon';
 
 export class ResourceNotebookCellEdit extends ResourceEdit {
 
@@ -32,36 +33,46 @@ export class BulkCellEdits {
 	constructor(
 		_undoRedoGroup: UndoRedoGroup,
 		undoRedoSource: UndoRedoSource | undefined,
-		_progress: IProgress<void>,
-		_token: CancellationToken,
-		_edits: ResourceNotebookCellEdit[],
-		@INotebookEditorModelResolverService _notebookModelService: INotebookEditorModelResolverService,
+		private _progress: IProgress<void>,
+		private _token: CancellationToken,
+		private _edits: ResourceNotebookCellEdit[],
+		@INotebookService private _notebookService: INotebookService
 	) { }
 
+	// {{SQL CARBON EDIT}} Use our own notebooks
 	async apply(): Promise<void> {
+		const editsByNotebook = groupBy(this._edits, (a, b) => compare(a.resource.toString(), b.resource.toString()));
+		for (let group of editsByNotebook) {
+			if (this._token.isCancellationRequested) {
+				break;
+			}
+			const [first] = group;
+			let editor = await this._notebookService.findNotebookEditor(first.resource);
+			if (editor) {
+				const edits = group.map(entry => entry.cellEdit);
+				await editor.applyCellEdits(convertToCellEdit(edits));
+			}
 
-		// {{SQL CARBON EDIT}} Use our own notebooks
-		// const editsByNotebook = groupBy(this._edits, (a, b) => compare(a.resource.toString(), b.resource.toString()));
-
-		// for (let group of editsByNotebook) {
-		// 	if (this._token.isCancellationRequested) {
-		// 		break;
-		// 	}
-		// 	const [first] = group;
-		// 	const ref = await this._notebookModelService.resolve(first.resource);
-
-		// 	// check state
-		// 	if (typeof first.versionId === 'number' && ref.object.notebook.versionId !== first.versionId) {
-		// 		ref.dispose();
-		// 		throw new Error(`Notebook '${first.resource}' has changed in the meantime`);
-		// 	}
-
-		// 	// apply edits
-		// 	const edits = group.map(entry => entry.cellEdit);
-		// 	ref.object.notebook.applyEdits(edits, true, undefined, () => undefined, this._undoRedoGroup);
-		// 	ref.dispose();
-
-		// 	this._progress.report(undefined);
-		// }
+			this._progress.report(undefined);
+		}
 	}
+}
+
+function convertToCellEdit(edits: ICellEditOperation[]): ICellEdit[] {
+	let convertedEdits = [];
+	for (let edit of edits) {
+		switch (edit.editType) {
+			case CellEditType.Replace:
+			case CellEditType.Output:
+			case CellEditType.Metadata:
+			case CellEditType.CellLanguage:
+			case CellEditType.DocumentMetadata:
+			case CellEditType.Move:
+			case CellEditType.OutputItems:
+			case CellEditType.PartialMetadata:
+			case CellEditType.PartialInternalMetadata:
+				continue;
+		}
+	}
+	return convertedEdits;
 }
