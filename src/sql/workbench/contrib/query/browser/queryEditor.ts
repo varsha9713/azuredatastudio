@@ -182,9 +182,9 @@ export class QueryEditor extends EditorPane {
 			onDidChange: Event.None
 		}, Sizing.Distribute);
 
-		this.resultsEditorContainer = DOM.$('.results-editor-container');
-		this.resultsEditor = this._register(this.instantiationService.createInstance(QueryResultsEditor));
-		this.resultsEditor.create(this.resultsEditorContainer);
+		// this.resultsEditorContainer = DOM.$('.results-editor-container');
+		// this.resultsEditor = this._register(this.instantiationService.createInstance(QueryResultsEditor));
+		// this.resultsEditor.create(this.resultsEditorContainer);
 	}
 
 	/**
@@ -342,7 +342,9 @@ export class QueryEditor extends EditorPane {
 			// Remember view settings if input changes
 			this.saveQueryEditorViewState(this.input);
 			this.currentTextEditor.clearInput();
-			this.resultsEditor.clearInput();
+			if (this.resultsEditor) {
+				this.resultsEditor.clearInput();
+			}
 		}
 
 		// If we're switching editor types switch out the views
