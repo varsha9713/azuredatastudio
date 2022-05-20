@@ -360,17 +360,17 @@ export class QueryEditor extends EditorPane {
 			}, Sizing.Distribute, 0);
 		}
 
-		await Promise.all([
-			super.setInput(newInput, options, context, token),
-			this.currentTextEditor.setInput(newInput.text, options, context, token),
-			this.resultsEditor.setInput(newInput.results, options, context)
-		]);
-
 		// await Promise.all([
 		// 	super.setInput(newInput, options, context, token),
 		// 	this.currentTextEditor.setInput(newInput.text, options, context, token),
-		// 	this.openResultsQuery(newInput.results, options)
+		// 	this.resultsEditor.setInput(newInput.results, options, context)
 		// ]);
+
+		await Promise.all([
+			super.setInput(newInput, options, context, token),
+			this.currentTextEditor.setInput(newInput.text, options, context, token),
+			this.openResultsQuery(newInput.results, options, context)
+		]);
 
 		this.inputDisposables.clear();
 		this.inputDisposables.add(this.input.state.onChange(c => this.updateState(c)));
