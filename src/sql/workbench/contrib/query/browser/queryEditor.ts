@@ -45,6 +45,7 @@ import { IEditorOptions } from 'vs/platform/editor/common/editor';
 import { ITextResourceConfigurationService } from 'vs/editor/common/services/textResourceConfigurationService';
 import { ICapabilitiesService } from 'sql/platform/capabilities/common/capabilitiesService';
 import { ConnectionOptionSpecialType } from 'sql/platform/connection/common/interfaces';
+import { QueryResultsInput } from 'sql/workbench/common/editor/query/queryResultsInput';
 
 const QUERY_EDITOR_VIEW_STATE_PREFERENCE_KEY = 'queryEditorViewState';
 
@@ -365,6 +366,12 @@ export class QueryEditor extends EditorPane {
 			this.resultsEditor.setInput(newInput.results, options, context)
 		]);
 
+		// await Promise.all([
+		// 	super.setInput(newInput, options, context, token),
+		// 	this.currentTextEditor.setInput(newInput.text, options, context, token),
+		// 	this.openResultsQuery(newInput.results, options)
+		// ]);
+
 		this.inputDisposables.clear();
 		this.inputDisposables.add(this.input.state.onChange(c => this.updateState(c)));
 		this.updateState({ connectingChange: true, connectedChange: true, executingChange: true, resultsVisibleChange: true, sqlCmdModeChanged: true });
@@ -373,6 +380,17 @@ export class QueryEditor extends EditorPane {
 
 		if (editorViewState && editorViewState.resultsHeight && this.splitview.length > 1) {
 			this.splitview.resizeView(1, editorViewState.resultsHeight);
+		}
+	}
+
+	// Helper function for opening the resultsQuery to a new tab.
+	private async openResultsQuery(resultsInput: QueryResultsInput, options: IEditorOptions, context: IEditorOpenContext): Promise<void> {
+		options.pinned = true;
+		if (!this.resultsEditor) {
+			this.resultsEditor = (await this.editorService.openEditor(resultsInput, options)) as QueryResultsEditor;
+		}
+		else {
+			this.resultsEditor.setInput(resultsInput, options, context);
 		}
 	}
 
