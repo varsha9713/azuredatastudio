@@ -454,7 +454,9 @@ export class QueryEditor extends EditorPane {
 	public override setEditorVisible(visible: boolean, group: IEditorGroup): void {
 		this.textFileEditor.setVisible(visible, group);
 		this.textResourceEditor.setVisible(visible, group);
-		this.resultsEditor.setVisible(visible, group);
+		if (this.resultsEditor) {
+			this.resultsEditor.setVisible(visible, group);
+		}
 		super.setEditorVisible(visible, group);
 
 		// Note: must update after calling super.setEditorVisible so that the accurate count is handled
@@ -489,7 +491,9 @@ export class QueryEditor extends EditorPane {
 		this.saveQueryEditorViewState(this.input);
 
 		this.currentTextEditor.clearInput();
-		this.resultsEditor.clearInput();
+		if (this.resultsEditor) {
+			this.resultsEditor.clearInput();
+		}
 		super.clearInput();
 	}
 
