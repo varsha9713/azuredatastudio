@@ -370,19 +370,20 @@ export class QueryEditor extends EditorPane {
 
 		await Promise.all([
 			super.setInput(newInput, options, context, token),
-			this.currentTextEditor.setInput(newInput.text, options, context, token),
-			this.openResultsQuery(newInput.results, options, context)
+			this.currentTextEditor.setInput(newInput.text, options, context, token)
 		]);
 
 		this.inputDisposables.clear();
 		this.inputDisposables.add(this.input.state.onChange(c => this.updateState(c)));
-		this.updateState({ connectingChange: true, connectedChange: true, executingChange: true, resultsVisibleChange: true, sqlCmdModeChanged: true });
+		this.updateState({ connectingChange: true, connectedChange: true, executingChange: true, resultsVisibleChange: false, sqlCmdModeChanged: true });
 
 		const editorViewState = this.loadTextEditorViewState(this.input.resource);
 
 		if (editorViewState && editorViewState.resultsHeight && this.splitview.length > 1) {
 			this.splitview.resizeView(1, editorViewState.resultsHeight);
 		}
+
+		await this.openResultsQuery(newInput.results, options, context);
 	}
 
 	// Helper function for opening the resultsQuery to a new tab.

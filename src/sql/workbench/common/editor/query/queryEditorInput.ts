@@ -316,7 +316,7 @@ export abstract class QueryEditorInput extends EditorInput implements IConnectab
 
 	public onRunQuery(): void {
 		this.state.executing = true;
-		this.state.resultsVisible = true;
+		//this.state.resultsVisible = true;
 	}
 
 	public onQueryComplete(): void {
