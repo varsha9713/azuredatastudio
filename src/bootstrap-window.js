@@ -43,6 +43,7 @@
 	 * }} [options]
 	 */
 	async function load(modulePaths, resultCallback, options) {
+		console.log('BOOTSTRAP-WINDOW ', modulePaths);
 
 		const isDev = !!safeProcess.env['VSCODE_DEV'];
 
@@ -157,6 +158,50 @@
 			loaderConfig.amdModulesPattern = /(vs|sql)\/|(^vscode-textmate$)|(^vscode-oniguruma$)|(^xterm$)|(^xterm-addon-search$)|(^xterm-addon-unicode11$)|(^xterm-addon-webgl$)|(^iconv-lite-umd$)|(^jschardet$)|(^@vscode\/vscode-languagedetection$)|(^tas-client-umd$)|(^ansi_up$)|(^azdataGraph$)/;  // {{SQL CARBON EDIT}} include sql and ansi_up in regex
 		}
 
+		const fs = require.__$__nodeRequire('fs');
+		const path = require.__$__nodeRequire('path');
+		const iLibInstrument = require.__$__nodeRequire('istanbul-lib-instrument');
+		const iLibCoverage = require.__$__nodeRequire('istanbul-lib-coverage');
+		const iLibSourceMaps = require.__$__nodeRequire('istanbul-lib-source-maps');
+		const iLibReport = require.__$__nodeRequire('istanbul-lib-report');
+		const iReports = require.__$__nodeRequire('istanbul-reports');
+
+		function toUpperDriveLetter(str) {
+			if (/^[a-z]:/.test(str)) {
+				return str.charAt(0).toUpperCase() + str.substr(1);
+			}
+			return str;
+		}
+
+		function toLowerDriveLetter(str) {
+			if (/^[A-Z]:/.test(str)) {
+				return str.charAt(0).toLowerCase() + str.substr(1);
+			}
+			return str;
+		}
+
+		function fixPath(brokenPath) {
+			const startIndex = brokenPath.lastIndexOf(REPO_PATH);
+			if (startIndex === -1) {
+				return toLowerDriveLetter(brokenPath);
+			}
+			return toLowerDriveLetter(brokenPath.substr(startIndex));
+		}
+		const REPO_PATH = toUpperDriveLetter(path.join(__dirname, '../../../../..'));
+
+		const instrumenter = iLibInstrument.createInstrumenter();
+		loaderConfig.nodeInstrumenter = (contents, source) => {
+			// Try to find a .map file
+			let map = undefined;
+			try {
+				map = JSON.parse(fs.readFileSync(`${source}.map`).toString());
+			} catch (err) {
+				console.log(err);
+				// missing source map...
+			}
+			return instrumenter.instrumentSync(contents, source, map);
+		};
+
 		// Signal before require.config()
 		if (typeof options?.beforeLoaderConfig === 'function') {
 			options.beforeLoaderConfig(loaderConfig);
@@ -164,6 +209,38 @@
 
 		// Configure loader
 		require.config(loaderConfig);
+
+		setTimeout(() => {
+			console.log('PATH ', path.join(REPO_PATH, `.build/coverage-window`));
+			const mapStore = iLibSourceMaps.createSourceMapStore();
+			const coverageMap = iLibCoverage.createCoverageMap(global.__coverage__);
+			return mapStore.transformCoverage(coverageMap).then((transformed) => {
+				// Paths come out all broken
+				let newData = Object.create(null);
+				Object.keys(transformed.data).forEach((file) => {
+					const entry = transformed.data[file];
+					const fixedPath = fixPath(entry.path);
+					if (fixedPath.includes(`/vs/`) || fixedPath.includes('\\vs\\') || path.basename(fixedPath) === 'marked.js') { return; } // {{SQL CARBON EDIT}} skip vscode files and imported marked.js
+					// @ts-ignore
+					entry.data.path = fixedPath;
+					newData[fixedPath] = entry;
+				});
+				transformed.data = newData;
+				const context = iLibReport.createContext({
+					dir: path.join(REPO_PATH, `.build/coverage-window`),
+					coverageMap: transformed
+				});
+				const tree = context.getTree('flat');
+
+				[
+					iReports.create('json'),
+					iReports.create('lcov'),
+					iReports.create('html'),
+					iReports.create('cobertura')
+					// @ts-ignore
+				].forEach(report => tree.visit(report, context));
+			});
+		}, 30000);
 
 		// Handle pseudo NLS
 		if (nlsConfig.pseudo) {

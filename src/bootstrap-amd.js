@@ -9,10 +9,18 @@
 const loader = require('./vs/loader');
 const bootstrap = require('./bootstrap');
 const performance = require('./vs/base/common/performance');
+const fs = require('fs');
+const path = require('path');
+const iLibInstrument = require('istanbul-lib-instrument');
+const iLibCoverage = require('istanbul-lib-coverage');
+const iLibSourceMaps = require('istanbul-lib-source-maps');
+const iLibReport = require('istanbul-lib-report');
+const iReports = require('istanbul-reports');
 
 // Bootstrap: NLS
 const nlsConfig = bootstrap.setupNLS();
 
+const instrumenter = iLibInstrument.createInstrumenter();
 // Bootstrap: Loader
 loader.config({
 	baseUrl: bootstrap.fileUriFromPath(__dirname, { isWindows: process.platform === 'win32' }),
@@ -21,8 +29,75 @@ loader.config({
 	nodeMain: __filename,
 	'vs/nls': nlsConfig,
 	amdModulesPattern: /^(vs|sql)\//,
-	recordStats: true
+	recordStats: true,
+	nodeInstrumenter: (contents, source) => {
+		// Try to find a .map file
+		let map = undefined;
+		try {
+			map = JSON.parse(fs.readFileSync(`${source}.map`).toString());
+		} catch (err) {
+			console.log(err);
+			// missing source map...
+		}
+		return instrumenter.instrumentSync(contents, source, map);
+		// return contents;
+	}
 });
+
+const REPO_PATH = toUpperDriveLetter(path.join(__dirname, '../'));
+
+setTimeout(() => {
+	const mapStore = iLibSourceMaps.createSourceMapStore();
+	const coverageMap = iLibCoverage.createCoverageMap(global.__coverage__);
+	return mapStore.transformCoverage(coverageMap).then((transformed) => {
+		// Paths come out all broken
+		let newData = Object.create(null);
+		Object.keys(transformed.data).forEach((file) => {
+			const entry = transformed.data[file];
+			const fixedPath = fixPath(entry.path);
+			if (fixedPath.includes(`/vs/`) || fixedPath.includes('\\vs\\') || path.basename(fixedPath) === 'marked.js') { return; } // {{SQL CARBON EDIT}} skip vscode files and imported marked.js
+			// @ts-ignore
+			entry.data.path = fixedPath;
+			newData[fixedPath] = entry;
+		});
+		transformed.data = newData;
+		const context = iLibReport.createContext({
+			dir: path.join(REPO_PATH, `.build/coverage-amd`),
+			coverageMap: transformed
+		});
+		const tree = context.getTree('flat');
+
+		[
+			iReports.create('json'),
+			iReports.create('lcov'),
+			iReports.create('html'),
+			iReports.create('cobertura')
+		// @ts-ignore
+		].forEach(report => tree.visit(report, context));
+	});
+}, 60000);
+
+function toUpperDriveLetter(str) {
+	if (/^[a-z]:/.test(str)) {
+		return str.charAt(0).toUpperCase() + str.substr(1);
+	}
+	return str;
+}
+
+function toLowerDriveLetter(str) {
+	if (/^[A-Z]:/.test(str)) {
+		return str.charAt(0).toLowerCase() + str.substr(1);
+	}
+	return str;
+}
+
+function fixPath(brokenPath) {
+	const startIndex = brokenPath.lastIndexOf(REPO_PATH);
+	if (startIndex === -1) {
+		return toLowerDriveLetter(brokenPath);
+	}
+	return toLowerDriveLetter(brokenPath.substr(startIndex));
+}
 
 // Running in Electron
 if (process.env['ELECTRON_RUN_AS_NODE'] || process.versions['electron']) {
