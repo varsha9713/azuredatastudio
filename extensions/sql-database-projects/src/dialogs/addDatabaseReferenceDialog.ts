@@ -14,7 +14,7 @@ import { cssStyles } from '../common/uiConstants';
 import { IconPathHelper } from '../common/iconHelper';
 import { ISystemDatabaseReferenceSettings, IDacpacReferenceSettings, IProjectReferenceSettings } from '../models/IDatabaseReferenceSettings';
 import { Deferred } from '../common/promise';
-import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
+import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../telemetry';
 import { SystemDatabase } from '../models/projectEntry';
 
 export enum ReferenceType {

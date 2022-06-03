@@ -16,7 +16,7 @@ import { ISqlProject, ItemType, SqlTargetPlatform } from 'sqldbproj';
 import { promises as fs } from 'fs';
 import { DataSource } from './dataSources/dataSources';
 import { ISystemDatabaseReferenceSettings, IDacpacReferenceSettings, IProjectReferenceSettings } from './IDatabaseReferenceSettings';
-import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
+import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../telemetry';
 import { DacpacReferenceProjectEntry, EntryType, FileProjectEntry, IDatabaseReferenceProjectEntry, ProjectEntry, SqlCmdVariableProjectEntry, SqlProjectReferenceProjectEntry, SystemDatabase, SystemDatabaseReferenceProjectEntry } from './projectEntry';
 
 /**

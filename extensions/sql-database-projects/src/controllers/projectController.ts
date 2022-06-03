@@ -33,7 +33,7 @@ import { ISystemDatabaseReferenceSettings, IDacpacReferenceSettings, IProjectRef
 import { DatabaseReferenceTreeItem } from '../models/tree/databaseReferencesTreeItem';
 import { CreateProjectFromDatabaseDialog } from '../dialogs/createProjectFromDatabaseDialog';
 import { UpdateProjectFromDatabaseDialog } from '../dialogs/updateProjectFromDatabaseDialog';
-import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
+import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../telemetry';
 import { IconPathHelper } from '../common/iconHelper';
 import { DashboardData, PublishData, Status } from '../models/dashboardData/dashboardData';
 import { getPublishDatabaseSettings, launchPublishTargetOption } from '../dialogs/publishDatabaseQuickpick';

@@ -15,7 +15,7 @@ import { DeploymentOptions } from 'mssql';
 import { IconPathHelper } from '../common/iconHelper';
 import { cssStyles } from '../common/uiConstants';
 import { getAgreementDisplayText, getConnectionName, getDockerBaseImages, getPublishServerName } from './utils';
-import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
+import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../telemetry';
 import { ILocalDbDeployProfile } from '../models/deploy/deployProfile';
 import { Deferred } from '../common/promise';
 
