@@ -347,10 +347,15 @@ export interface IPackageInfo {
 	aiKey: string;
 }
 
-export function getPackageInfo(packageJson: any): IPackageInfo | undefined {
+export function getPackageInfo(packageJson?: any): IPackageInfo | undefined {
+	if (!packageJson) {
+		packageJson = require('../../package.json');
+	}
+	console.error('packageJson is ' + JSON.stringify(packageJson));
+
 	if (packageJson) {
 		return {
-			name: packageJson.name,
+			name: getAzdataApi() ? 'sql-database-projects' : 'sql-database-projects-vscode',//packageJson.name,
 			fullName: `${packageJson.publisher}.${packageJson.name}`,
 			version: packageJson.version,
 			aiKey: packageJson.aiKey
