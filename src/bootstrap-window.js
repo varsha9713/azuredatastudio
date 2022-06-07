@@ -165,6 +165,10 @@
 		const iLibSourceMaps = require.__$__nodeRequire('istanbul-lib-source-maps');
 		const iLibReport = require.__$__nodeRequire('istanbul-lib-report');
 		const iReports = require.__$__nodeRequire('istanbul-reports');
+		// const amd = define.amd;
+		// define.amd = false;
+		// const iMiddleware = require.__$__nodeRequire('istanbul-middleware');
+		// define.amd = amd;
 
 		function toUpperDriveLetter(str) {
 			if (/^[a-z]:/.test(str)) {
@@ -180,6 +184,8 @@
 			return str;
 		}
 
+		const REPO_PATH = toUpperDriveLetter(path.join(__dirname, '../../../../..'));
+
 		function fixPath(brokenPath) {
 			const startIndex = brokenPath.lastIndexOf(REPO_PATH);
 			if (startIndex === -1) {
@@ -187,8 +193,10 @@
 			}
 			return toLowerDriveLetter(brokenPath.substr(startIndex));
 		}
-		const REPO_PATH = toUpperDriveLetter(path.join(__dirname, '../../../../..'));
 
+		// This doesn't work unfortunately - renderer code is loaded via script tags which use BrowserScriptLoader from loader.js
+		// not the NodeScriptLoader which allows this instrumenter
+		// Maybe try disabling loading via script tags (preferScriptTags)
 		const instrumenter = iLibInstrument.createInstrumenter();
 		loaderConfig.nodeInstrumenter = (contents, source) => {
 			// Try to find a .map file
@@ -201,6 +209,13 @@
 			}
 			return instrumenter.instrumentSync(contents, source, map);
 		};
+
+		// https://github.com/gotwarlost/istanbul-middleware
+		// iMiddleware.createClientHandler(REPO_PATH, {
+		// 	matcher: (req) => {
+		// 		console.log(`MATCHER ${req}`);
+		// 	}
+		// });
 
 		// Signal before require.config()
 		if (typeof options?.beforeLoaderConfig === 'function') {
