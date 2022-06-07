@@ -336,6 +336,7 @@ export async function getDefaultPublishDeploymentOptions(project: Project): Prom
 	// this option needs to be true for same database references validation to work
 	if (project.databaseReferences.length > 0) {
 		deploymentOptions.includeCompositeObjects.value = true;
+		// deploymentOptions.optionsMapTable['include Composite Objects'].value = true;: TODO:SAI
 	}
 	return result.defaultDeploymentOptions;
 }

@@ -156,7 +156,11 @@ export class DacFxTestService implements mssql.IDacFxService {
 				doNotDropWorkloadClassifiers: { value: false, description: sampleDesc, displayName: sampleName },
 				ignoreWorkloadClassifiers: { value: false, description: sampleDesc, displayName: sampleName },
 				ignoreDatabaseWorkloadGroups: { value: false, description: sampleDesc, displayName: sampleName },
-				doNotDropDatabaseWorkloadGroups: { value: false, description: sampleDesc, displayName: sampleName }
+				doNotDropDatabaseWorkloadGroups: { value: false, description: sampleDesc, displayName: sampleName },
+				optionsMapTable: new Map<string, mssql.DacDeployOptionPropertyBoolean>([
+					['Sample Display Name Option1', { value: false, description: sampleDesc, displayName: sampleName }],
+					['Sample Display Name Option2', { value: false, description: sampleDesc, displayName: sampleName }]
+				])
 			}
 		};
 
