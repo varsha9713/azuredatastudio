@@ -30,6 +30,7 @@ loader.config({
 	'vs/nls': nlsConfig,
 	amdModulesPattern: /^(vs|sql)\//,
 	recordStats: true,
+	// TODO Only do this when specifically ran with coverage, easiest is probably through env var
 	nodeInstrumenter: (contents, source) => {
 		// Try to find a .map file
 		let map = undefined;
@@ -46,6 +47,7 @@ loader.config({
 
 const REPO_PATH = toUpperDriveLetter(path.join(__dirname, '../'));
 
+// TODO - Have this happen either on app close or when instructed (such as calling this when tests are finished)
 setTimeout(() => {
 	const mapStore = iLibSourceMaps.createSourceMapStore();
 	const coverageMap = iLibCoverage.createCoverageMap(global.__coverage__);
@@ -77,6 +79,7 @@ setTimeout(() => {
 	});
 }, 60000);
 
+// TODO - Move all these common functions into single place for all bootstrap stuff to use (and ideally coverage.js as well)
 function toUpperDriveLetter(str) {
 	if (/^[a-z]:/.test(str)) {
 		return str.charAt(0).toUpperCase() + str.substr(1);

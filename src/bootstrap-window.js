@@ -43,7 +43,6 @@
 	 * }} [options]
 	 */
 	async function load(modulePaths, resultCallback, options) {
-		console.log('BOOTSTRAP-WINDOW ', modulePaths);
 
 		const isDev = !!safeProcess.env['VSCODE_DEV'];
 
