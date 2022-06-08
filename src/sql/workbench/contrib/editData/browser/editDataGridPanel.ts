@@ -222,7 +222,7 @@ export class EditDataGridPanel extends GridParentComponent {
 			// After rendering move the focus back to the previous active cell
 			if (this.currentCell.column !== undefined && this.currentCell.row !== undefined
 				&& this.isCellOnScreen(this.currentCell.row, this.currentCell.column)) {
-				this.focusCell(this.currentCell.row, this.currentCell.column, false);
+				//this.focusCell(this.currentCell.row, this.currentCell.column, false);
 			}
 		};
 
