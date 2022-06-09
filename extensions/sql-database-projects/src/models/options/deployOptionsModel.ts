@@ -8,14 +8,13 @@ import * as mssql from 'mssql';
 export class DeployOptionsModel {
 	public deploymentOptions: mssql.DeploymentOptions;
 
-	public optionsLookup: Map<string, boolean>;
+	public optionsLookup: Map<string, boolean> = new Map<string, boolean>();
 	public optionsMapTable: Map<string, mssql.DacDeployOptionPropertyBoolean> = new Map<string, mssql.DacDeployOptionPropertyBoolean>();
 	public optionsLabels: string[] = [];
 
 	constructor(defaultOptions: mssql.DeploymentOptions) {
 		this.deploymentOptions = defaultOptions;
 		this.UpdateOptionsMapTable();
-		this.optionsLookup = new Map<string, boolean>();
 		this.optionsLabels = Object.keys(this.deploymentOptions.optionsMapTable).sort();
 	}
 
