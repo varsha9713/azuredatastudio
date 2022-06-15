@@ -157,17 +157,11 @@
 			loaderConfig.amdModulesPattern = /(vs|sql)\/|(^vscode-textmate$)|(^vscode-oniguruma$)|(^xterm$)|(^xterm-addon-search$)|(^xterm-addon-unicode11$)|(^xterm-addon-webgl$)|(^iconv-lite-umd$)|(^jschardet$)|(^@vscode\/vscode-languagedetection$)|(^tas-client-umd$)|(^ansi_up$)|(^azdataGraph$)/;  // {{SQL CARBON EDIT}} include sql and ansi_up in regex
 		}
 
-		const fs = require.__$__nodeRequire('fs');
 		const path = require.__$__nodeRequire('path');
-		const iLibInstrument = require.__$__nodeRequire('istanbul-lib-instrument');
 		const iLibCoverage = require.__$__nodeRequire('istanbul-lib-coverage');
 		const iLibSourceMaps = require.__$__nodeRequire('istanbul-lib-source-maps');
 		const iLibReport = require.__$__nodeRequire('istanbul-lib-report');
 		const iReports = require.__$__nodeRequire('istanbul-reports');
-		// const amd = define.amd;
-		// define.amd = false;
-		// const iMiddleware = require.__$__nodeRequire('istanbul-middleware');
-		// define.amd = amd;
 
 		function toUpperDriveLetter(str) {
 			if (/^[a-z]:/.test(str)) {
@@ -193,29 +187,6 @@
 			return toLowerDriveLetter(brokenPath.substr(startIndex));
 		}
 
-		// This doesn't work unfortunately - renderer code is loaded via script tags which use BrowserScriptLoader from loader.js
-		// not the NodeScriptLoader which allows this instrumenter
-		// Maybe try disabling loading via script tags (preferScriptTags)
-		const instrumenter = iLibInstrument.createInstrumenter();
-		loaderConfig.nodeInstrumenter = (contents, source) => {
-			// Try to find a .map file
-			let map = undefined;
-			try {
-				map = JSON.parse(fs.readFileSync(`${source}.map`).toString());
-			} catch (err) {
-				console.log(err);
-				// missing source map...
-			}
-			return instrumenter.instrumentSync(contents, source, map);
-		};
-
-		// https://github.com/gotwarlost/istanbul-middleware
-		// iMiddleware.createClientHandler(REPO_PATH, {
-		// 	matcher: (req) => {
-		// 		console.log(`MATCHER ${req}`);
-		// 	}
-		// });
-
 		// Signal before require.config()
 		if (typeof options?.beforeLoaderConfig === 'function') {
 			options.beforeLoaderConfig(loaderConfig);
@@ -224,8 +195,9 @@
 		// Configure loader
 		require.config(loaderConfig);
 
-		setTimeout(() => {
-			console.log('PATH ', path.join(REPO_PATH, `.build/coverage-window`));
+		// setTimeout(() => {
+		window.addEventListener('beforeunload', () => {
+			console.log('WROTE COVERAGE');
 			const mapStore = iLibSourceMaps.createSourceMapStore();
 			const coverageMap = iLibCoverage.createCoverageMap(global.__coverage__);
 			return mapStore.transformCoverage(coverageMap).then((transformed) => {
@@ -234,7 +206,12 @@
 				Object.keys(transformed.data).forEach((file) => {
 					const entry = transformed.data[file];
 					const fixedPath = fixPath(entry.path);
-					if (fixedPath.includes(`/vs/`) || fixedPath.includes('\\vs\\') || path.basename(fixedPath) === 'marked.js') { return; } // {{SQL CARBON EDIT}} skip vscode files and imported marked.js
+					// skip vscode files and imported marked.js
+					if (fixedPath.includes(`/vs/`)
+						|| fixedPath.includes('\\vs\\')
+						|| path.basename(fixedPath) === 'marked.js') {
+						return;
+					}
 					// @ts-ignore
 					entry.data.path = fixedPath;
 					newData[fixedPath] = entry;
@@ -254,7 +231,8 @@
 					// @ts-ignore
 				].forEach(report => tree.visit(report, context));
 			});
-		}, 30000);
+		});
+		// }, 120000);
 
 		// Handle pseudo NLS
 		if (nlsConfig.pseudo) {
